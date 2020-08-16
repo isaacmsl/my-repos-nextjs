@@ -1,52 +1,37 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 
-export default function Home() {
+export default function Home(props) {
+
+  const { simpleRepos } = props
+
   return (
     <div className={styles.container}>
       <Head>
-        <title>Create Next App</title>
+        <title>Isaac | Repositories </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+          Hi, I'm <a href="https://github.com/isaacmsl" target="__blank">Isaac!</a>
         </h1>
 
         <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
+          Those are my repositories
         </p>
 
         <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+          {
+            simpleRepos.map(simpleRepo => (
+              <a key={ simpleRepo.id} href={ simpleRepo.url } className={ styles.card }>
+                <h3>{ simpleRepo.name } &rarr;</h3>
+                <p>{ simpleRepo.description }</p>
+                <p>★ {simpleRepo.stars}</p>
+                <RepoLanguage language={ simpleRepo.language } />
+              </a>
+            ))
+          }
         </div>
       </main>
 
@@ -61,5 +46,71 @@ export default function Home() {
         </a>
       </footer>
     </div>
+  )
+}
+
+export async function getStaticProps() {
+
+  const res = await fetch('https://api.github.com/users/isaacmsl/repos')
+  const repos = await res.json()
+
+  const reposOrderedByStars = repos.sort(sortByStars)
+
+  const simpleRepos = reposOrderedByStars.map(repo => {
+    return {
+      id: repo.id,
+      name: repo.name,
+      description: repo.description || 'No description :(',
+      url: repo.html_url,
+      stars: repo.stargazers_count,
+      language: repo.language,
+    }
+  })
+
+  return {
+    props: {
+      simpleRepos
+    },
+  }
+}
+
+function sortByStars(repoA, repoB) {
+  const repoAStars = repoA.stargazers_count
+  const repoBStars = repoB.stargazers_count
+
+  return (repoAStars === repoBStars) ? 0
+    : ((repoAStars > repoBStars) ? -1 : 1)
+}
+
+const RepoLanguage = ({ language }) => {
+
+  if (language) {
+    return (
+      <p 
+        style={{
+          display: 'flex',
+          alignItems: 'center', 
+        }}>
+        <LanguageIcon language={language} />
+        <span
+          style={{
+            marginLeft: '10px',
+          }}>
+          { language }
+        </span>
+      </p>
+    )
+  }
+  return null
+}
+
+const LanguageIcon = ({ language }) => {
+  const languageLowerCase = language.toLowerCase()
+  return (
+    <img
+      src={`https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/${languageLowerCase}/${languageLowerCase}.png`} 
+      alt='Image of language'
+      width='20px'
+    ></img> 
   )
 }
