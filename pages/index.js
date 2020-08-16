@@ -1,8 +1,6 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 
-import { REVALIDADE_TIME_SECONDS } from 'react-native-dotenv';
-
 export default function Home(props) {
 
   const { simpleRepos } = props
@@ -68,12 +66,12 @@ export async function getStaticProps() {
       language: repo.language,
     }
   })
-
+  
   return {
     props: {
       simpleRepos,
     },
-    revalidate: REVALIDADE_TIME_SECONDS,
+    revalidate: process.env.REVALIDATE_TIME_SECONDS,
   }
 }
 
